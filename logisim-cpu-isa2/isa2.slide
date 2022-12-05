@@ -26,13 +26,27 @@ Curiosity and self-education.
 .image crashcourse.png 400 _
 .caption [[https://www.youtube.com/watch?v=tpIctyqH29Q&list=PLH2l6uzC4UEW0s7-KewFLBC1D0l6XRfye][Crash Course Computer Science, by PBS Studios]]
 
+## Agenda
+
+* Demo
+* ISA
+* More Demo
+
 ## Logisim
 
 Demo.
 
 ## ISA
 
-Doc.
+Real-life ISAs are complicated. Here's how RISC-V defines instruction length:
+
+.image rvlen.png 400 _
+
+## ISA (cont)
+
+And here's a snippet of the actual bit fields of a 32-bit RISC-V instruction:
+
+.image rvopcode.png 260 _
 
 ## CPU
 
@@ -40,7 +54,7 @@ Demo.
 
 ## What's next?
 
-I _may_ do another round, with a little bit larger ISA, enough to support
+I _may_ do another round, with a less restricted ISA, enough to support
 function calls. But not sure yet, could be boring.
 
 An interesting thing to do is to try and replicate this design in Verilog.
