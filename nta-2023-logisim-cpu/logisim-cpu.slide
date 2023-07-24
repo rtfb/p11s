@@ -1,0 +1,102 @@
+# Design Your Own ISA and Build a (Virtual) CPU
+2023-07-28
+Tags: cpu, isa, hobby, logisim
+
+Vytautas Šaltenis
+vytas@rtfb.lt
+https://rtfb.lt/
+https://github.com/rtfb/
+@rtfb
+
+## Intro
+
+.image rock1.png
+.link https://twitter.com/daisyowl/status/841802094361235456
+
+## Intro
+
+.image rock2.png
+.link https://twitter.com/daisyowl/status/841806379962646532
+
+## Why?
+
+Curiosity and self-education.
+
+.image crashcourse.png 400 _
+.caption [[https://www.youtube.com/watch?v=tpIctyqH29Q&list=PLH2l6uzC4UEW0s7-KewFLBC1D0l6XRfye][Crash Course Computer Science, by PBS Studios]]
+
+## Agenda
+
+* Logisim Demo: what it is, what are the capabilities
+* ISA: before you can start building the CPU, you have to design ISA
+* More Demo: the CPU
+
+## Logisim
+
+Demo.
+
+## ISA
+
+Real-life ISAs are complicated. Here's how RISC-V defines instruction length:
+
+.image rvlen.png 400 _
+
+## ISA (cont)
+
+And here's a snippet of the actual bit fields of a 32-bit RISC-V instruction:
+
+.image rvopcode.png 260 _
+
+## CPU
+
+Demo.
+
+## What's next?
+
+I _may_ do another round, with a less restricted ISA, enough to support
+function calls. But not sure yet, could be boring.
+
+An interesting thing to do is to try and replicate this design in Verilog.
+Mainly because that's the path towards a real, physical fabrication.
+
+Another interesting thing to try is to implement a full RISC-V spec, but that
+may be too much work.
+
+## References
+
+* The stuff I was showing today itself
+<https://github.com/rtfb/sketchbook/tree/master/logisim/cpu>
+
+* Excellent educational series by PBS Studios, Crash Course Computer Science
+<https://www.youtube.com/watch?v=tpIctyqH29Q&list=PLH2l6uzC4UEW0s7-KewFLBC1D0l6XRfye>
+
+* The (original) Logisim: <http://www.cburch.com/logisim/>
+
+* The community-maintained incarnation that I use, Logisim Evolution:
+<https://github.com/logisim-evolution/logisim-evolution>
+
+* Original Van Neumann paper, a very interesting historical reading:
+<https://www.ias.edu/sites/default/files/library/Prelim_Disc_Logical_Design.pdf>
+(this is a scanned original paper, for extra flavor of ancient history; google
+for your choice of a more readable modern typesetting)
+
+## References (cont)
+
+* Endless Logisim resources on YouTube, a few highlights:
+    - <https://www.youtube.com/watch?v=dYZ-Hwbcnq4>
+    - <https://www.youtube.com/watch?v=b-Zwqu1HDKU>
+    - <https://www.youtube.com/watch?v=1OfeswjPZuw>
+
+* Not directly related to Logisim, but Ben Eater is a great educator on this low
+level stuff, definitely check out his YT channel:
+<https://www.youtube.com/c/BenEater>
+
+* He also has a shop where you can purchase ready to use kits for assembling
+your own computing components on breadboards:
+<https://eater.net/shop>
+
+* Google sponsors physical fabrication of chips:
+<https://opensource.googleblog.com/2022/05/Build%20Open%20Silicon%20with%20Google.html>
+People build some crazy stuff with it, e.g. here's a physical accelerator for
+solving Sudoku: <https://platform.efabless.com/projects/428>
+
