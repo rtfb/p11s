@@ -62,9 +62,14 @@ Mainly because that's the path towards a real, physical fabrication.
 Another interesting thing to try is to implement a full RISC-V spec, but that
 may be too much work.
 
+Physical chip?
+
 ## References
 
-* The stuff I was showing today itself
+* Today's slides and supporting files
+<https://github.com/rtfb/p11s/tree/master/nta-2023-logisim-cpu>
+
+* The Logisim files and (dis)assember:
 <https://github.com/rtfb/sketchbook/tree/master/logisim/cpu>
 
 * Excellent educational series by PBS Studios, Crash Course Computer Science
@@ -99,4 +104,17 @@ your own computing components on breadboards:
 <https://opensource.googleblog.com/2022/05/Build%20Open%20Silicon%20with%20Google.html>
 People build some crazy stuff with it, e.g. here's a physical accelerator for
 solving Sudoku: <https://platform.efabless.com/projects/428>
+
+## References (cont (cont))
+
+* Another project for physical fabrication: Tiny Tapeout
+<https://tinytapeout.com/>
+
+* It's even possible to build your project in Logisim and submit it for Tiny Tapeout
+<https://github.com/AvalonSemiconductors/tt02-logisim-example>
+
+* Ken Shirriff's blog. Ken writes a lot about reverse engineering Intel 8086
+CPU, as well as other old hardware. Highly educational and very entertaining.
+Much recommend.
+<https://www.righto.com/>
 
