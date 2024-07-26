@@ -1,0 +1,143 @@
+# What's inside the chip fab
+2024-07-26
+Tags: cpu, fab, silicon
+
+Vytautas Šaltenis
+vytas@rtfb.lt
+https://rtfb.lt/
+https://github.com/rtfb/
+@rtfb
+
+## Intro
+
+.image cleanroom.jpeg
+.link https://airinnovations.com/blog/semiconductor-clean-room-requirements/
+
+## Agenda
+
+* What is the chip?
+* What it takes to fabricate the chip?
+* Generally will be zooming in from the macro to the micro
+
+## Disclaimers
+
+* I've no idea what I'm talking about
+    - Just parroting what @Asianometry says on YT and Ken Shirriff writes on
+    his blog
+* Almost nothing contemporary
+* Expect historical discontinuity
+
+## The Package
+
+.image dip14.jpeg 500 _
+.link https://etstore.in/index.php/product/1227/
+
+## Inside the Package
+
+.image exposed-chip.jpeg 500 _
+.link https://twitter.com/BitBangingBytes/status/1746226619977531493
+
+## So... How?
+
+.image rock1.png
+.image rock2.png
+.link https://twitter.com/daisyowl/status/841802094361235456
+
+## The Ingot
+
+.image ingot.jpeg 500 _
+.link https://en.wikipedia.org/wiki/Monocrystalline_silicon
+
+## The Wafers
+
+.image wafers.jpeg 500 _
+.link https://www.exportersindia.com/product-detail/monocrystalline-silicon-wafer-5132632.htm
+
+## Uncut Wafer
+
+.image wafer-chips.jpeg 500 _
+.link https://www.samaterials.com/gallium-arsenide-wafer-vs-silicon-wafer.html
+
+## 386
+
+.image 386.jpeg 500 _
+.link https://www.righto.com/2024/01/intel-386-standard-cells.html
+
+## RFID
+
+.image antenna-w500.jpeg 500 _
+.link https://www.righto.com/2024/06/montreal-mifare-ultralight-nfc.html
+
+## RFID Chip
+
+.image rfid-salt.jpeg 500 _
+.link https://www.righto.com/2024/06/montreal-mifare-ultralight-nfc.html
+
+## Wafer-Scale Chip
+
+.image wsc.png 500 _
+.link https://www.cerebras.net/product-chip/
+
+## Ape for scale
+
+.image ape-for-scale.jpeg 500 _
+.link https://www.cerebras.net/product-chip/
+
+## 386 Annotated
+
+.image 386-labeled.jpeg 500 _
+.link https://www.righto.com/2023/12/386-xor-circuits.html
+
+## Criss-cross
+
+.image xx.png
+
+## Metal Layers
+
+.image layers.png
+.link https://www.researchgate.net/figure/Small-integrated-circuit-with-three-metal-layers-insulator-has-been-removed-The_fig1_265079127
+
+## Metal Grid
+
+.image metal-grid.jpeg _ 350
+.link https://www.righto.com/2023/12/386-barrel-shifter.html
+
+## Photomask
+
+.image photomask.jpeg
+.link https://en.wikipedia.org/wiki/Photomask
+
+## MOS Transistor
+
+.image mosfet.jpeg
+.link https://www.righto.com/2023/12/386-xor-circuits.html
+
+## CMOS: Inverter
+
+.image inverter.png
+
+## Buffer with Power Rails
+
+.image buffer2.png _ 1000
+
+## Thank you!
+
+And come tomorrow at 16:30 for my other talk! :-)
+
+## References
+
+* Asianometry, the Youtuber I refered to. Can't recommend him enough.
+<https://www.youtube.com/@Asianometry>
+
+* A story about a very little-known old chip, MP944, built for F-14 avionics:
+<https://www.youtube.com/watch?v=YpruA5mC7wg>, also, has a website dedicated to
+it: <https://firstmicroprocessor.com/>
+
+* Ken Shirriff's blog. Ken writes a lot about reverse engineering all sorts of
+chips, as well as other old hardware. Highly educational and very entertaining.
+Much recommend.
+<https://www.righto.com/>
+
+* 'Chip War', a book by Chris Miller. A detailed history of chip industry and
+economic (and military) wars associated with it.
+<https://www.goodreads.com/book/show/62807111-chip-war>
