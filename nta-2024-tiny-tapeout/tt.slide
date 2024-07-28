@@ -1,0 +1,184 @@
+# Tiny Tapeout 05
+2024-07-27
+Tags: tinytapeout, fab, silicon, verilog
+
+Vytautas Šaltenis
+vytas@rtfb.lt
+https://rtfb.lt/
+https://github.com/rtfb/
+@rtfb
+
+## Intro
+
+.image addct.png 290 _
+.link https://twitter.com/splinedrive/status/1748616484396359852
+
+## Reading
+
+.image reading.jpeg
+
+## Efabless
+
+.image efabless.png 500 _
+.link https://efabless.com/
+
+## Tiny Tapeout
+
+.image tt.jpeg 500 _
+.link https://www.youtube.com/watch?v=qVWq_XZko-M
+
+## TT Board
+
+.image tt-board.jpeg 500 _
+
+## TT Tiles
+
+.image tt-tiles.png 500 _
+.link https://x.com/matthewvenn/status/1718215929799045570
+
+## TT Board: what you get
+
+* A tiny area: 160x100 micrometers
+* Fits approx 1000 logic gates
+* 24 IO pins: 8 input, 8 output 8 bidirectional
+* ~$50
+* Can buy 2, 4, 8 such tiles
+
+## When you get it?
+
+* Takes approx 9 months!
+* Might get somewhat faster soonish due to more fabs in EU
+    - But still expect some plural months
+
+## Rubylith
+
+.image rubylith.jpeg
+.link https://www.computerhistory.org/revolution/digital-logic/12/287/1614
+
+## OpenROAD
+
+.image openroad.png _ 200
+.link https://theopenroadproject.org/
+
+## TT: rendered wires
+
+.image render.png 500 _
+.link https://x.com/matthewvenn/status/1718215933431353466
+
+## So what did I do?
+
+Collatz Conjecture brute-forcer!
+
+.image collatz.png
+
+Example:
+
+    input N = 12
+    Collatz sequence: 6, 3, 10, 5, 16, 8, 4, 2, 1
+
+Conjecture: the sequence will always converge to 1 for all integer inputs.
+
+<https://en.wikipedia.org/wiki/Collatz_conjecture>
+
+## Verilog
+
+Verilog code looks like this:
+
+    module tt_um_rtfb_collatz (
+        input  wire [7:0] ui_in,    // Dedicated inputs - connected to the input switches
+        output wire [7:0] uo_out,   // Dedicated outputs - connected to the 7 segment display
+        input  wire [7:0] uio_in,   // IOs: Bidirectional Input path
+        // ...
+        input  wire       clk,      // clock
+        input  wire       rst_n     // reset_n - low to reset
+    );
+
+    // ...
+
+    assign switch_to_compute = !reset && state_bit && state == STATE_IO;
+
+<https://github.com/rtfb/tt05-collatz>
+
+## A Small Example
+
+Let's break down a small complete module:
+
+    module adder (
+        input  wire [7:0] input_a,
+        input  wire [7:0] input_b,
+        input  wire       ensure_even,
+        output wire [7:0] output,
+    );
+
+    assign output = input_a + input_b & (ensure_even ? 8'b11111110 : 8'hff);
+
+    endmodule
+
+## Diagramized
+
+Same code but in Logisim.
+
+.image adder-diag.png
+
+## My Code
+
+The workhorse: literally two lines!
+
+    wire is_even = !iter[0];
+    assign next_iter = is_even ?
+                       iter >> 1 :
+                       (iter << 1) + iter + 1;
+
+The entire design is ~170 lines of Verilog, including comments.
+
+## Tests!
+
+Here's how tests look like in TinyTapeout toolchain
+
+    async def set_input(dut, addr, data_byte):
+        dut.uio_in.value = addr      # set address of i'th byte
+        dut.ui_in.value = data_byte  # set the data byte
+        await ClockCycles(dut.clk, 1)
+        await pulse_write_enable(dut)
+
+    async def pulse_write_enable(dut):
+        dut.uio_in.value |= WRITE_ENABLE_BIT
+        await ClockCycles(dut.clk, 1)
+        dut.uio_in.value &= ~WRITE_ENABLE_BIT
+
+## Debug?
+
+.image gtkwave.png
+
+## Thank you!
+
+Questions?
+
+## References
+
+* The code for this project
+<https://github.com/rtfb/tt05-collatz>
+
+* Tiny Tapeout website
+<https://tinytapeout.com/>
+
+* If you prefer reading in academic paper format, this one's for you:
+Tiny Tapeout: A shared silicon tape out platform accessible to everyone
+<https://ieeexplore.ieee.org/document/10584359>
+
+* Did I mention the breadboard CPU? It was done by this guy, Ben Eater. Ben is
+a great educator on this low level stuff, definitely check out his YT channel
+<https://www.youtube.com/@BenEater>
+
+* He also has a shop where you can purchase ready to use kits for assembling
+your own computing components on breadboards
+<https://eater.net/shop>
+
+## References (cont)
+
+* A very good resource for learning Verilog: <https://8bitworkshop.com/>. They
+have an in-browser IDE where you can play around with their examples
+<https://8bitworkshop.com/v3.11.0/?platform=verilog&file=clock_divider.v>
+
+* There are entire courses from respectable unis available on YT
+<https://www.youtube.com/watch?v=EbXG8CMac5M&list=PL5Q2soXY2Zi-iBn_sw_B63HtdbTNmphLc>
