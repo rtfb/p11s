@@ -1,0 +1,243 @@
+# Tiny Tapeout 05 - Update
+2025-07-25
+Tags: tinytapeout, fab, silicon, verilog
+
+Vytautas Šaltenis
+vytas@rtfb.lt
+https://rtfb.lt/
+https://github.com/rtfb/
+https://mastodon.social/@rtfb
+
+## Intro
+
+Last year I showed a piece of silicon of my design.
+
+But I had it delivered to me just in time to show, but not to test!
+
+So here's an update: how I tested it and what I found.
+
+* Recap
+* Intro to Verilog
+* How my chip operates
+* How TT Board operates
+* The results
+
+## Quick recap: what was it all about?
+
+Collatz Conjecture brute-forcer.
+
+.image collatz.png
+
+Example:
+
+    input N = 12
+    Collatz sequence: 6, 3, 10, 5, 16, 8, 4, 2, 1
+
+Conjecture: the sequence will always converge to 1 for all integer inputs.
+
+<https://en.wikipedia.org/wiki/Collatz_conjecture>
+
+## A bit about Verilog
+
+Verilog code looks like this:
+
+    module tt_um_rtfb_collatz (
+        input  wire [7:0] ui_in,    // Dedicated inputs - connected to the input switches
+        output wire [7:0] uo_out,   // Dedicated outputs - connected to the 7 segment display
+        input  wire       clk,      // clock
+        input  wire       rst_n     // reset_n - low to reset
+    );
+
+    // code...
+    // more code ...
+    // ...
+    assign switch_to_compute = !reset && state_bit && state == STATE_IO;
+
+    endmodule
+
+<https://github.com/rtfb/tt05-collatz>
+
+: I showed this code last year, but didn't explain much. Will dig a bit deeper
+: this time. Let's start with what's a module.
+
+## Modules are like blocks
+
+.image logisim.png 500 _
+
+## Modules are like blocks
+
+.image logisim-block.png 500 _
+
+## Modules are like blocks
+
+.code overflow.v
+
+Notice how there's no clock signal here.
+
+## Clock
+
+If the module operates on state (i.e. registers), it needs a clock signal.
+
+.code -numbers module-clock.v HLa
+
+## The constraints on the design
+
+* 8 input pins
+* 8 output pins
+* 8 bidirectional pins (i.e. I can choose whether they're input or output)
+* Need to operate on 70+ bit input numbers
+    - Huh!?
+
+## Satisfying the constraints
+
+* 8 input pins - the input byte when writing
+* 8 output pins - the output byte when reading
+* 8 bidirectional pins:
+    - 5 pins for address
+    - 1 pin for "write enable"
+    - 1 pin for "start computing"
+    - 1 pin for selecting the output register
+
+## How my chip operates: init
+
+.code init.v HLa
+
+: On reset, I initialize a bunch of internal state registers. Most notably, the
+: `state` reg, which says I'm in IO mode.
+
+## How my chip operates: I/O
+
+.code io.v HLa
+
+: The highlighted lines are input path. Write the input byte into the address.
+: The weird syntax in the sq brackets means an 8-bit range starting at addr*8.
+: The unhighlighted lines are output path - to read back the result.
+
+## How my chip operates: mode switch
+
+.code state.v HLa
+
+## How my chip operates: compute mode
+
+.code compute.v HLa
+
+: First we check whether the current number is even
+: Then we either divide by two, or do 3x+1
+: You will not find the highlighted line in the code, it's a bit doctored here
+: for easier explanation
+
+## How TT Board operates
+
+We get the chip mounted on the PCB (the one I showed last year).
+
+.image ttboard.jpeg 500 _
+
+The PCB has the ASIC, and an RP2040. The RP2040 helps with driving the chip and
+testing it.
+
+## External Pins
+
+The ASIC has external pins. They are wired to the PMODs and I could drive the
+chip from an external source (e.g. a separate Raspberry Pi board).
+
+And that is how I intended to do it, but more on that later.
+
+.image ttboard-pmods.jpeg 400 _
+
+## Directly from RP2040
+
+Alternatively (and simpler...ly), we can drive the ASIC directly from RP2040.
+Most conveniently, RP2040 can run MicroPython, which means it can run almost
+exactly the same code that was written for the testbench during development!
+
+.image ttboard-rp.jpeg 400 _
+
+## Testbench code
+
+    async def read_n_byte_num(dut, nbytes, extra_bits=0):
+        number = 0
+        for i in range(nbytes):
+            dut.uio_in.value = i | extra_bits
+            await ClockCycles(dut.clk, 2)
+            b = int(dut.uo_out.value)
+            number |= b << (i*8)
+        return number
+
+
+    async def read_output(dut):
+        orbit_len = await read_n_byte_num(dut, 2)
+        path_rec = await read_n_byte_num(dut, 2, READ_PATH_RECORD_BIT)
+        return orbit_len, path_rec
+
+## Micropython code on the board
+
+    def read_n_byte_num(nbytes, extra_bits=0):
+        number = 0
+        for i in range(nbytes):
+            tt.bidir_byte = i | extra_bits
+            tt.clock_project_once()
+            tt.clock_project_once()
+            b = tt.output_byte
+            number |= b << (i*8)
+        return number
+
+
+    def read_output():
+        orbit_len = read_n_byte_num(2)
+        path_rec = read_n_byte_num(2, READ_PATH_RECORD_BIT)
+        return orbit_len, path_rec
+
+## So what did I find?
+
+* It works
+* But has a bug
+
+## The Bug
+
+.code thebug.v HLa
+
+Can you spot the bug? :-)
+
+: next_iter is equal to 1 only for one clock. Then it keeps computing:
+: 3*1+1 = 4; 4/2 = 2; 2/2 = 1; 3*1+1 = 4; etc
+
+## The Fix
+
+.code thefix.v HLa
+
+## The Power of Open Source
+
+RebelMike tested it for me - approx 12 hours earlier than I got the chip :-)
+
+.image rebelmike.png
+
+: Last year, July 25 (Thursday), at ~1am he reported in the chat that he tested
+: it. I only got the chip delivered to me approx 12 hours later (and then
+: promptly left for NTA).
+
+## Why is open source important?
+
+* Turns out, most of the chips in academia never get tested
+* Testing infrastructure
+
+## Thank you!
+
+Questions?
+
+## References
+
+* Tiny Tapeout website
+<https://tinytapeout.com/>
+
+* A very good resource for learning Verilog: <https://8bitworkshop.com/>. They
+have an in-browser IDE where you can play around with their examples:
+<https://8bitworkshop.com/v3.11.0/?platform=verilog&file=clock_divider.v>
+
+* There are entire courses from respectable unis available on YT:
+<https://www.youtube.com/watch?v=EbXG8CMac5M&list=PL5Q2soXY2Zi-iBn_sw_B63HtdbTNmphLc>
+
+* All the code is here:
+<https://github.com/rtfb/tt05-collatz>
+
+* Source code for these slides:
+<https://github.com/rtfb/p11s/tree/master/nta-2025-tt-update>
