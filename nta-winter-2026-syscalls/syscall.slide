@@ -1,0 +1,199 @@
+# Anatomy of a Syscall
+2026-01-17
+Tags: syscall, os, kernel, cpu
+
+Vytautas Šaltenis
+vytas@rtfb.lt
+https://rtfb.lt/
+https://github.com/rtfb/
+@rtfb
+
+: I wrote a hobby kernel for my own education
+: Wanted to tell something about it, but there's so much to tell, couldn't pick
+: Last month, in convo with a friend it turned out he doesn't have a good
+: understanding of how a syscall works
+: So that was it, I decided to put together a coherent story
+
+## Intro
+
+This is a detailed walkthrough of how a system call works.
+
+The purpose is twofold:
+
+* Better mental picture for you as a programmer
+* Prepare you to read the docs (and code) more easily in case you ever need to
+
+Caveats:
+
+* Primarily around RISC-V, but other archs are similar
+* Only covers "classic" (read: older) systems
+* Almost always assume a single-core machine
+
+: I won't be able to tell all the details needed to implement, that's beyond scope
+:
+: By "older" I mean things like 386 through pentium; the systems from the 90s
+: and 00s.
+:
+: Single core not because multi-core is somehow fundamentally different, but
+: because it's simpler to comprehend
+
+## What IS a system call?
+
+Very often illustrated like this (useless):
+
+.image sc1.webp
+
+.link https://www.geeksforgeeks.org/introduction-of-system-call/
+
+## What IS a system call (cont)?
+
+Or like this (better, but still useless):
+
+.image sc2.jpeg _ 600
+
+.link https://data-flair.training/blogs/system-call-in-os/
+
+## Some diagrams are better
+
+.image syscall_x86_64.png 450 _
+
+.link https://lwn.net/Articles/604287/
+
+## Or this
+
+.image system-call-steps.png _ 600
+
+.link https://juliensobczak.com/inspect/2021/08/10/linux-system-calls-under-the-hood/
+
+## So what REALLY is a syscall?
+
+The problem with all the diagrams I showed, even the best ones, are the magic
+arrows.
+
+Let's dig into what really happens, until we need no arrows.
+
+## The Plan
+
+We'll cover a few preliminaries, then we'll be ready to attack the question of
+interest.
+
+* How does a single CPU instruction work?
+* How does a function call work?
+* What are interrupts?
+* The syscalls
+
+: When we're ready to study the syscalls themselves, you will see there's not
+: much left to study, it's just the sum of all preliminaries.
+
+## Preliminaries 1: how does a single instruction work?
+
+CPU has internal state.
+
+State means registers.
+
+One of these is `pc` ("program counter"). (a.k.a. `ip`, "instruction pointer" in x86)
+
+`pc` holds the address of the current instruction.
+
+On every clock rise, CPU executes the current instruction, and increments the
+`pc` to the next one. **Atomically**.
+
+: So what if the current instruction is a jump?
+: Well, it calculates the desired address and assigns it to PC.
+
+## Preliminaries 2: how does a function call work?
+
+Now, how does a function call work? Is there such a thing in CPU?
+
+Yes there is. `call` is like a jump, but to an address of a function. And when
+the function is done, it calls `ret`. (Same mnemonics on x86; `bl`+`ret` on
+ARM)
+
+: Actually, in RV both call and ret are JAL/JALR - jump and link (register).
+: Also, in RV and ARM the return address is held in a register specified by the ABI
+: (x1), unlike x86 where the return address is pushed on stack.
+: ARM's BL = Branch with Link.
+
+## Preliminaries 3: what are interrupts?
+
+.image 6502-h.png _ 800
+
+.link https://en.wikipedia.org/wiki/MOS_Technology_6502
+
+: The legendary MOS 6502 CPU: Apple, Apple II, BBC Micro, Commodore, Atari, etc.
+: Not kernel-capable CPU, but I chose it because it has few enough pins to fit
+: on screen.
+
+## Preliminaries 3: what are interrupts?
+
+.image 6502-v.png _ 800
+
+## Preliminaries 3: how do interrupts get handled?
+
+Upon boot, kernel sets up the trap handler.
+
+It's a piece of code that gets executed when interrupt ping goes high.
+
+The address of trap handler is stored inside the CPU, in stvec register.
+
+stvec - Supervisor Trap VECtor
+
+sscratch - Supervisor scratch
+
+: Again, we see an example of state inside the CPU
+:
+: Privileged nomenclature: every sFOO privileged instruction/register has hFOO
+: and mFOO counterparts. (The symmetry breaks a little bit with hypervisor, but
+: let's not go there, and I don't know about it too much)
+
+## Now we're ready: software interrupt
+
+User program calls a syscall with one simple instruction: ecall ("environment
+call"). Plus parameters in registers as specified by ABI.
+
+It's like `call` for a function, but instead of a jump, does an interrupt - a
+software-caused interrupt.
+
+But why?
+
+: Other systems: int, syscall, swi
+
+## Software interrupts - the why
+
+Most importantly, because the mechanism already exists for external interrupts.
+
+You could certainly devise another way (and some systems do), but that does not
+necessarily buy you something important.
+
+## Software interrupts - the what
+
+Ecall does several things, **atomically**:
+
+* Saves the current user `pc` in `sepc` register ("supervisor exception program counter")
+* Switches internal CPU state to kernel mode
+* Transfers control to trap vector (just like interrupts)
+* Sets the bit corresponding to software interrupt in the `scause` register
+  ("supervisor (exception) cause")
+* Sets the `stval` (supervisor trap value) register to exception-specific value
+  (e.g. if the exception is page fault, it holds the address)
+
+## We're not finished yet: how do we get back?
+
+Similarly to a return from a function, a return from a syscall is performed
+with `sret` (or `mret`).
+
+These instructions reverse most of what `ecall` does, atomically, of course.
+
+One important addition is that `sret` activates `satp` ("supervisor address
+translation and protection", a.k.a. virtual memory page table).
+
+: satp can't be activated immediately when written to, because we're still
+: executing kernel code and the next instruction would pagefault
+
+## References
+
+* RISC-V Hobby OS
+<https://github.com/rtfb/riscv-hobby-os>
+
+* The RISC-V Instruction Set Manual: Volume II Privileged Architecture
+<https://docs.riscv.org/reference/isa/_attachments/riscv-privileged.pdf>
